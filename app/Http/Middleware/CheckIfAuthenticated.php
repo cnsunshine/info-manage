@@ -17,7 +17,7 @@ class CheckIfAuthenticated
     public function handle($request, Closure $next)
     {
         //检测用户token
-        $token = $request->input('x-token');
+        $token = $request->header('x-token');
         if (!isset($token)) {
             return response(
                 [
@@ -27,8 +27,8 @@ class CheckIfAuthenticated
             );
         }
         //token 换取uid
-        $uid = Redis::get($token);
-        if (!isset($uid)){
+        $username = Redis::get($token);
+        if (!isset($username)){
             return response(
                 [
                     'code' => '20001',
@@ -36,7 +36,7 @@ class CheckIfAuthenticated
                 ]
             );
         }
-        $request->attributes->add(['uid' => $uid]);
+        $request->attributes->add(['username' => $username]);
         return $next($request);
     }
 }

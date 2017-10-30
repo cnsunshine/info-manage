@@ -12,6 +12,13 @@ class User extends Model
     //
     protected $table = 'users';
 
+    protected $fillable = [
+        'username',
+        'password',
+        'uid',
+        'create_time'
+    ];
+
     public $timestamps = false;
     //用户名
     private $username = '';
@@ -33,7 +40,7 @@ class User extends Model
         $this->username = $username;
     }
 
-    public function createUid()
+    private function createUid()
     {
         $this->uid = Uuid::uuid1();
     }
@@ -58,9 +65,9 @@ class User extends Model
         $this->last_login = $last_login;
     }
 
-    public function createCreateTime()
+    private function createCreateTime()
     {
-        $this->create_time = time();
+        $this->create_time = date('Y-m-d H:i:s', time());
     }
 
     /**
@@ -69,6 +76,11 @@ class User extends Model
      */
     public function addUser()
     {
+        //创建uid
+        $this->createUid();
+        //创建时间
+        $this->createCreateTime();
+
         if (empty($this->username)
             || empty($this->password)
             || empty($this->create_time
@@ -88,7 +100,8 @@ class User extends Model
             return false;
         }
         //存储数据
-        $result = $this->save($user);
+        $model = $this->create($user);
+        $result = $model->save();
         return $result;
     }
 
