@@ -16,7 +16,7 @@ Route::get('/', function () {
 });
 
 Route::get('/index',  function () {
-    return "OK";
+    return \Ramsey\Uuid\Uuid::uuid1();
 });
 
 Route::get('/info/{id}', 'UserController@info')
