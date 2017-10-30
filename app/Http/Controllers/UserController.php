@@ -9,13 +9,18 @@
 namespace App\Http\Controllers;
 
 
+use App\Models\User;
+
 class UserController extends Controller
 {
     public function info($id = null){
+        $info = User::where('username', 'sunshine')
+            ->get();
         return response([
             'code' => 200,
             'body' => [
                 'id' => $id,
+                'info' => $info
             ]
         ]);
     }
