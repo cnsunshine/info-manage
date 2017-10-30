@@ -37,7 +37,8 @@ class AuthController extends Controller
         }
         return Helper::responseSuccess([
             'username' => $postData['username'],
-            'token' => $token
+            'token' => $token,
+            'expire' => env('REDIS_EXPIRE')
         ]);
     }
 
