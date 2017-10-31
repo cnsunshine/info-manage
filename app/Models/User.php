@@ -16,6 +16,7 @@ class User extends Model
         'username',
         'password',
         'uid',
+        'real_name',
         'create_time',
         'email',
         'tel'
@@ -28,6 +29,8 @@ class User extends Model
     private $uid = '';
     //pwd
     private $password = '';
+    //real_name
+    private $real_name = '';
     //email
     private $email = '';
     //tel
@@ -45,6 +48,11 @@ class User extends Model
     private function createUid()
     {
         $this->uid = Uuid::uuid1();
+    }
+
+    public function setRealName($real_name)
+    {
+        $this->real_name = $real_name;
     }
 
     public function setPassword($password)
@@ -85,10 +93,11 @@ class User extends Model
 
         if (empty($this->username)
             || empty($this->password)
-            || empty($this->create_time
+            || empty($this->create_time)
             || empty($this->uid)
+            || empty($this->real_name)
             || empty($this->email)
-            || empty($this->tel))){
+            || empty($this->tel)) {
             return false;
         }
 
@@ -96,6 +105,7 @@ class User extends Model
             'username' => $this->username,
             'uid' => $this->uid,
             'password' => $this->password,
+            'real_name' => $this->real_name,
             'create_time' => $this->create_time,
             'email' => $this->email,
             'tel' => $this->tel
@@ -104,10 +114,11 @@ class User extends Model
         $validator = Validator::make($user,
             [
                 'username' => 'required|alpha',
+                'real_name' => 'required|max:20',
                 'email' => 'required|email',
                 'tel' => 'required|regex:[[0-9]{11}]'
             ]);
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return false;
         }
         //存储数据
@@ -122,7 +133,7 @@ class User extends Model
      */
     public function updateUserInfo()
     {
-        if (empty($this->uid)){
+        if (empty($this->uid)) {
             return false;
         }
         $user = [
@@ -134,7 +145,7 @@ class User extends Model
             'email' => 'nullable|email',
             'tel' => 'nullable|regex:[[0-9]{11}]'
         ]);
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return false;
         }
         //存储数据
