@@ -16,7 +16,9 @@ class User extends Model
         'username',
         'password',
         'uid',
-        'create_time'
+        'create_time',
+        'email',
+        'tel'
     ];
 
     public $timestamps = false;
@@ -84,7 +86,9 @@ class User extends Model
         if (empty($this->username)
             || empty($this->password)
             || empty($this->create_time
-            || empty($this->uid))){
+            || empty($this->uid)
+            || empty($this->email)
+            || empty($this->tel))){
             return false;
         }
 
@@ -92,10 +96,17 @@ class User extends Model
             'username' => $this->username,
             'uid' => $this->uid,
             'password' => $this->password,
-            'create_time' => $this->create_time
+            'create_time' => $this->create_time,
+            'email' => $this->email,
+            'tel' => $this->tel
         ];
         //验证参数
-        $validator = Validator::make($user, ['username' => 'alpha']);
+        $validator = Validator::make($user,
+            [
+                'username' => 'required|alpha',
+                'email' => 'required|email',
+                'tel' => 'required|regex:[[0-9]{11}]'
+            ]);
         if ($validator->fails()){
             return false;
         }

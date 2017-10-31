@@ -16,17 +16,12 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function info(Request $request, $id = null){
-        $info = User::where('username', 'sunshine')
-            ->get();
-        return response([
-            'code' => 200,
-            'body' => [
-                'id' => $id,
-                'info' => $info,
-                'username' => Helper::getUsername($request)
-            ]
-        ]);
+    public function getUserInfo(Request $request, $username = null){
+
+    }
+
+    public function updateUserInfo(Request $request, $username = null){
+
     }
 
     /**
@@ -38,17 +33,24 @@ class UserController extends Controller
     {
         //参数完整性
         $postData = $request->all();
-        if (!(isset($postData['username']) && isset($postData['password']))){
+        if (!(isset($postData['username'])
+            && isset($postData['password'])
+            && isset($postData['email'])
+            && isset($postData['tel']))){
             return Helper::responseError(20002);
         }
         //参数合法性
         $user = [
             'username' => $postData['username'],
-            'password' => $postData['password']
+            'password' => $postData['password'],
+            'email' => $postData['email'],
+            'tel' => $postData['tel']
         ];
         $validator = Validator::make($user, [
             'username' => 'required|string|min:5|max:10|unique:users,username',
-            'password' => 'required|min:5|max:10'
+            'password' => 'required|min:5|max:10',
+            'email' => 'required|email',
+            'tel' => 'required|regex:[[0-9]{11}]'
         ]);
         if ($validator->fails()){
             return Helper::responseError(20003);
@@ -57,6 +59,8 @@ class UserController extends Controller
         $userModel = new User();
         $userModel->setUsername($user['username']);
         $userModel->setPassword($user['password']);
+        $userModel->setEmail($user['email']);
+        $userModel->setTel($user['tel']);
         $result = $userModel->addUser();
         if (!$result){
             return Helper::responseError(20004);
