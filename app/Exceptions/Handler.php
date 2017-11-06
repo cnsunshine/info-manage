@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Service\Helper;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -56,6 +57,8 @@ class Handler extends ExceptionHandler
                     'body' => $exception->getMessage()
                 ]
             );
+        }elseif ($exception instanceof ApiException){
+            return Helper::responseError($exception->getMessage());
         }
         return parent::render($request, $exception);
     }

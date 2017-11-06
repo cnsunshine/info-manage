@@ -50,6 +50,11 @@ class User extends Model
         $this->uid = Uuid::uuid1();
     }
 
+    public function getUid()
+    {
+        return $this->uid;
+    }
+
     public function setRealName($real_name)
     {
         $this->real_name = $real_name;

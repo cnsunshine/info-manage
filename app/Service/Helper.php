@@ -15,11 +15,11 @@ use Illuminate\Http\Request;
 class Helper
 {
     //获取uid
-    public static function getUsername(Request $request)
+    public static function getUid(Request $request)
     {
         $token = $request->header('x-token');
-        $username = Redis::get($token);
-        return $username;
+        $uid = Redis::get($token);
+        return $uid;
     }
     //返回正确数据
     public static function responseSuccess($body, $code = 200){

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Service\Helper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redis;
 use Ramsey\Uuid\Uuid;
@@ -25,14 +26,17 @@ class AuthController extends Controller
             ->where('username', $postData['username'])
             ->value('password');
         $result = Hash::check($postData['password'], $hashPwd);
-        if (!$result){
+        if (!$result) {
             return Helper::responseError(20005);
         }
         //生成redis token ,并返回
         $token = Uuid::uuid1();
-        $result1 = Redis::set($token, $postData['username']);
+        $uid = DB::table('users')
+            ->where('username', '=', $postData['username'])
+            ->value('uid');
+        $result1 = Redis::set($token, $uid);
         $result2 = Redis::expire($token, env('REDIS_EXPIRE'));
-        if (!((bool)$result1 && (bool)$result2)){
+        if (!((bool)$result1 && (bool)$result2)) {
             return Helper::responseError(20006);
         }
         return Helper::responseSuccess([

@@ -9,15 +9,27 @@
 namespace App\Http\Controllers;
 
 
+use App\Exceptions\ApiException;
+use App\Models\Student;
 use App\Models\User;
 use App\Service\Helper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
     public function getUserInfo(Request $request, $username = null)
     {
+        $uid = Helper::getUid($request);
+        $userModel = new User();
+        $info = $userModel
+            ->from('users as u')
+            ->where('u.uid', $uid)
+            ->join('student_info as si', 'u.uid', '=', 'si.uid')
+            ->select(['u.uid', 'u.real_name', 'si.college'])
+            ->get();
+        return Helper::responseSuccess($info);
 
     }
 
@@ -29,6 +41,7 @@ class UserController extends Controller
     /**
      * 用户注册
      * @param Request $request
+     * @throws ApiException
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
     public function register(Request $request)
@@ -40,7 +53,7 @@ class UserController extends Controller
             && isset($postData['real_name'])
             && isset($postData['email'])
             && isset($postData['tel']))) {
-            return Helper::responseError(20002);
+            throw new ApiException(20002);
         }
         //参数合法性
         $user = [
@@ -58,19 +71,28 @@ class UserController extends Controller
             'tel' => 'required|regex:[[0-9]{11}]'
         ]);
         if ($validator->fails()) {
-            return Helper::responseError(20003);
+            throw new ApiException(20003);
         }
         //增加用户
-        $userModel = new User();
-        $userModel->setUsername($user['username']);
-        $userModel->setPassword($user['password']);
-        $userModel->setRealName($user['real_name']);
-        $userModel->setEmail($user['email']);
-        $userModel->setTel($user['tel']);
-        $result = $userModel->addUser();
-        if (!$result) {
-            return Helper::responseError(20004);
-        }
+        DB::transaction(function () use($user) {
+            $userModel = new User();
+            $userModel->setUsername($user['username']);
+            $userModel->setPassword($user['password']);
+            $userModel->setRealName($user['real_name']);
+            $userModel->setEmail($user['email']);
+            $userModel->setTel($user['tel']);
+            $result = $userModel->addUser();
+            if (!$result) {
+                throw new ApiException(20004);
+            }
+            //增加学生
+            $studentModel = new Student();
+            $studentModel->uid = $userModel->getUid();
+            $result = $studentModel->save();
+            if (!$result) {
+                throw new ApiException(20004);
+            }
+        });
         return Helper::responseSuccess([
             'info' => '注册成功'
         ]);

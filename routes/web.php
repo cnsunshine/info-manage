@@ -17,11 +17,13 @@ Route::get('/', function () {
 
 
 Route::middleware(['check.auth'])->group(function () {
-    Route::get('/index', function () {
+    Route::get('/uuid', [function () {
         return \Ramsey\Uuid\Uuid::uuid1();
-    });
-    Route::get('/info/{id}', 'UserController@info')
-        ->where('id', '[0-9]+');
+    }, 'permission' => 'prm']);
+    //用户个人信息获取接口
+    Route::get('my/info', 'UserController@getUserInfo');
+    //用户设置个人信息接口
+    Route::post('my/info', 'UserController@updateUserInfo');
 });
 //登录接口
 Route::get('/auth/login', 'AuthController@login');
