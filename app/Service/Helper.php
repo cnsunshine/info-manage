@@ -9,6 +9,7 @@
 namespace App\Service;
 
 
+use App\Exceptions\ApiException;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Http\Request;
 
@@ -19,6 +20,9 @@ class Helper
     {
         $token = $request->header('x-token');
         $uid = Redis::get($token);
+        if (!$uid){
+            throw new ApiException(20001);
+        }
         return $uid;
     }
     //返回正确数据
