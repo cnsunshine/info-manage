@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Service\Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -41,14 +42,14 @@ class UserController extends Controller
 
     public function updateUserInfo(Request $request, $username = null)
     {
-        $jsonData = $request->all();
+        $postData = $request->all();
         $userInfo = [];
-        isset($jsonData['real_name']) ? $userInfo['real_name'] = $jsonData['real_name'] : null;
-        isset($jsonData['student_id']) ? $userInfo['student_id'] = $jsonData['student_id'] : null;
-        isset($jsonData['college']) ? $userInfo['college'] = $jsonData['college'] : null;
-        isset($jsonData['specialty']) ? $userInfo['specialty'] = $jsonData['specialty'] : null;
-        isset($jsonData['tel']) ? $userInfo['tel'] = $jsonData['tel'] : null;
-        isset($jsonData['email']) ? $userInfo['email'] = $jsonData['email'] : null;
+        isset($postData['real_name']) ? $userInfo['real_name'] = $postData['real_name'] : null;
+        isset($postData['student_id']) ? $userInfo['student_id'] = $postData['student_id'] : null;
+        isset($postData['college']) ? $userInfo['college'] = $postData['college'] : null;
+        isset($postData['specialty']) ? $userInfo['specialty'] = $postData['specialty'] : null;
+        isset($postData['tel']) ? $userInfo['tel'] = $postData['tel'] : null;
+        isset($postData['email']) ? $userInfo['email'] = $postData['email'] : null;
         //校验数据
         $validator = Validator::make($userInfo, [
             'real_name' => 'nullable|max:20',
@@ -66,19 +67,19 @@ class UserController extends Controller
         //修改数据
         DB::transaction(function () use ($userInfo, $uid) {
             $userModel = User::where('uid', $uid)->first();
-            isset($userInfo['real_name'])?$userModel->real_name = $userInfo['real_name']:null;
-            isset($userInfo['email'])?$userModel->email = $userInfo['email']:null;
-            isset($userInfo['tel'])?$userModel->tel = $userInfo['tel']:null;
+            isset($userInfo['real_name']) ? $userModel->real_name = $userInfo['real_name'] : null;
+            isset($userInfo['email']) ? $userModel->email = $userInfo['email'] : null;
+            isset($userInfo['tel']) ? $userModel->tel = $userInfo['tel'] : null;
             $result = $userModel->save();
-            if (!$result){
+            if (!$result) {
                 throw new ApiException(20007);
             }
             $studentModel = Student::where('uid', $uid)->first();
-            isset($userInfo['student_id'])?$studentModel->student_id = $userInfo['student_id']:null;
-            isset($userInfo['college'])?$studentModel->college = $userInfo['college']:null;
-            isset($userInfo['specialty'])?$studentModel->specialty = $userInfo['specialty']:null;
+            isset($userInfo['student_id']) ? $studentModel->student_id = $userInfo['student_id'] : null;
+            isset($userInfo['college']) ? $studentModel->college = $userInfo['college'] : null;
+            isset($userInfo['specialty']) ? $studentModel->specialty = $userInfo['specialty'] : null;
             $result = $studentModel->save();
-            if (!$result){
+            if (!$result) {
                 throw new ApiException(20007);
             }
         });
@@ -146,5 +147,39 @@ class UserController extends Controller
         return Helper::responseSuccess([
             'info' => '注册成功'
         ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $postData = $request->all();
+        if (!(isset($postData['old_password']) && isset($postData['new_password']))){
+            throw new ApiException(20002);
+        }
+        $validator = Validator::make(['password' => $postData['new_password']], [
+            'password' => 'required|min:6|max:12'
+        ]);
+        if ($validator->fails()){
+            throw new ApiException(20008);
+        }
+        //检查旧密码
+        $uid = Helper::getUid($request);
+        if (!$uid){
+            throw new ApiException(20001);
+        }
+        $userModel = User::where('uid', $uid)
+            ->first();
+        $hashPwd = $userModel->password;
+        $result = Hash::check($postData['old_password'], $hashPwd);
+        if (!$result) {
+            return Helper::responseError(20005);
+        }
+        //修改密码
+        $userModel->password = Hash::make($postData['new_password']);
+        $result = $userModel->save();
+        if (!$result){
+            throw new ApiException(20007);
+        }
+        $info = '修改成功';
+        return Helper::responseSuccess($info);
     }
 }
