@@ -27,8 +27,8 @@ class CheckIfAuthenticated
             );
         }
         //token 换取uid
-        $username = Redis::get($token);
-        if (!isset($username)){
+        $uid = Redis::get($token);
+        if (!isset($uid)){
             return response(
                 [
                     'code' => '20001',
@@ -36,7 +36,7 @@ class CheckIfAuthenticated
                 ]
             );
         }
-        $request->attributes->add(['username' => $username]);
+        $request->attributes->add(['uid' => $uid]);
         return $next($request);
     }
 }
