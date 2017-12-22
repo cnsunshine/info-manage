@@ -20,6 +20,7 @@ class CreateExamTable extends Migration
             $table->integer('total_time');
             $table->dateTime('start_date_time');
             $table->dateTime('end_date_time');
+            $table->integer('total_score');
             $table->integer('pass_score');
             $table->string('description');
             $table->boolean('is_auto');
@@ -37,6 +38,6 @@ class CreateExamTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('exam');
+        Schema::dropIfExists('exams');
     }
 }

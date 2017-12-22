@@ -16,14 +16,14 @@ class QuestionController extends Controller
     //创建题库
     public function createQuestionBank(Request $request)
     {
-        $jsonData = $request->all();
-        if (!(isset($jsonData['name']) && isset($jsonData['status']))) {
+        $postData = $request->all();
+        if (!(isset($postData['name']) && isset($postData['status']))) {
             throw new ApiException(20002);
         }
         $uid = Helper::getUid($request);
         $questionBankInfo = [];
-        $questionBankInfo['name'] = $jsonData['name'];
-        $questionBankInfo['status'] = $jsonData['status'];
+        $questionBankInfo['name'] = $postData['name'];
+        $questionBankInfo['status'] = $postData['status'];
         $validator = Validator::make($questionBankInfo, [
             'status' => ['required', Rule::in(['NORMAL', 'LOCK'])]
         ]);
@@ -32,12 +32,12 @@ class QuestionController extends Controller
         }
         $questionBankModel = new QuestionBank();
         $questionBankModel->name = $questionBankInfo['name'];
-        $questionBankModel->status = $jsonData['status'];
+        $questionBankModel->status = $postData['status'];
         $questionBankModel->create_uid = $uid;
         $questionBankModel->create_time = date('Y-m-d H:i:s', time());
         $questionBankModel->update_uid = $uid;
         $questionBankModel->update_time = date('Y-m-d H:i:s', time());
-        isset($jsonData['description']) ? $questionBankModel->description : null;
+        isset($postData['description']) ? $questionBankModel->description : null;
         $result = $questionBankModel->save();
         if (!$result) {
             throw new ApiException(20007);
@@ -50,9 +50,9 @@ class QuestionController extends Controller
     //获取题库列表
     public function getQuestionBankList(Request $request)
     {
-        $jsonData = $request->all();
+        $postData = $request->all();
         $questionBankList = QuestionBank::where('status', '<>', 'DELETE')
-            ->paginate($jsonData['num']);
+            ->paginate($postData['num']);
         return Helper::responseSuccess($questionBankList);
     }
     //获取题库
@@ -67,14 +67,14 @@ class QuestionController extends Controller
     //修改题库
     public function updateQuestionBank(Request $request, $qb_id)
     {
-        $jsonData = $request->all();
-        if (!(isset($qb_id) && isset($jsonData['name']) && isset($jsonData['status']))) {
+        $postData = $request->all();
+        if (!(isset($qb_id) && isset($postData['name']) && isset($postData['status']))) {
             throw new ApiException(20002);
         }
         $uid = Helper::getUid($request);
         $questionBankInfo = [];
-        $questionBankInfo['name'] = $jsonData['name'];
-        $questionBankInfo['status'] = $jsonData['status'];
+        $questionBankInfo['name'] = $postData['name'];
+        $questionBankInfo['status'] = $postData['status'];
         $validator = Validator::make($questionBankInfo, [
             'status' => ['required', Rule::in(['NORMAL', 'LOCK'])]
         ]);
@@ -82,9 +82,9 @@ class QuestionController extends Controller
             throw new ApiException(20008);
         }
         $questionBankModel = QuestionBank::where('qb_id', $qb_id)->first();
-        $questionBankModel->name = $jsonData['name'];
-        $questionBankModel->status = $jsonData['status'];
-        isset($jsonData['description']) ? $questionBankModel->description = $jsonData['description'] : null;
+        $questionBankModel->name = $postData['name'];
+        $questionBankModel->status = $postData['status'];
+        isset($postData['description']) ? $questionBankModel->description = $postData['description'] : null;
         $questionBankModel->update_uid = $uid;
         $questionBankModel->update_time = date('Y-m-d H:i:s', time());
         $result = $questionBankModel->save();
@@ -108,7 +108,16 @@ class QuestionController extends Controller
         }
         return Helper::responseSuccess(['info' => '删除成功']);
     }
-
+    //获取题目列表
+    public function getQuestionList(Request $request, $qb_id)
+    {
+        $postData = $request->all();
+        $questionList = DB::table('question_bank_contain as qc')
+            ->join('questions as q', 'qc.qid', '=', 'q.qid')
+            ->where('qb_id', $qb_id)
+            ->paginate(15);
+        return Helper::responseSuccess($questionList);
+    }
     //获取题目
     public function getQuestion($qid)
     {
@@ -135,23 +144,23 @@ class QuestionController extends Controller
     //增加题目
     public function createQuestion(Request $request)
     {
-        $jsonData = $request->all();
-        if (!(isset($jsonData['status']) && isset($jsonData['type'])
-            && isset($jsonData['classification']) && isset($jsonData['detail'])
-            && isset($jsonData['option']) && isset($jsonData['answer'])
-            && isset($jsonData['qb_id']))) {
+        $postData = $request->all();
+        if (!(isset($postData['status']) && isset($postData['type'])
+            && isset($postData['classification']) && isset($postData['detail'])
+            && isset($postData['option']) && isset($postData['answer'])
+            && isset($postData['qb_id']))) {
             throw new ApiException(20002);
         }
         $uid = Helper::getUid($request);
         $questionInfo = [];
-        $questionInfo['qb_id'] = $jsonData['qb_id'];
-        $questionInfo['status'] = $jsonData['status'];
-        $questionInfo['type'] = $jsonData['type'];
-        $questionInfo['classification'] = $jsonData['classification'];
-        $questionInfo['detail'] = $jsonData['detail'];
-        $questionInfo['option'] = $jsonData['option'];
-        $questionInfo['answer'] = $jsonData['answer'];
-        isset($jsonData['description']) ? $questionInfo['description'] = $jsonData['description'] : null;
+        $questionInfo['qb_id'] = $postData['qb_id'];
+        $questionInfo['status'] = $postData['status'];
+        $questionInfo['type'] = $postData['type'];
+        $questionInfo['classification'] = $postData['classification'];
+        $questionInfo['detail'] = $postData['detail'];
+        $questionInfo['option'] = $postData['option'];
+        $questionInfo['answer'] = $postData['answer'];
+        isset($postData['description']) ? $questionInfo['description'] = $postData['description'] : null;
         $validator = Validator::make($questionInfo, [
             'qb_id' => 'required|exists:question_bank,qb_id',
             'status' => ['required', Rule::in(['NORMAL', 'LOCK'])],
@@ -191,21 +200,21 @@ class QuestionController extends Controller
     }
     //修改题目
     public function updateQuestion(Request $request, $qid){
-        $jsonData = $request->all();
-        if (!(isset($jsonData['status']) && isset($jsonData['type'])
-            && isset($jsonData['classification']) && isset($jsonData['detail'])
-            && isset($jsonData['option']) && isset($jsonData['answer']))) {
+        $postData = $request->all();
+        if (!(isset($postData['status']) && isset($postData['type'])
+            && isset($postData['classification']) && isset($postData['detail'])
+            && isset($postData['option']) && isset($postData['answer']))) {
             throw new ApiException(20002);
         }
         $uid = Helper::getUid($request);
         $questionInfo = [];
-        $questionInfo['status'] = $jsonData['status'];
-        $questionInfo['type'] = $jsonData['type'];
-        $questionInfo['classification'] = $jsonData['classification'];
-        $questionInfo['detail'] = $jsonData['detail'];
-        $questionInfo['option'] = $jsonData['option'];
-        $questionInfo['answer'] = $jsonData['answer'];
-        isset($jsonData['description']) ? $questionInfo['description'] = $jsonData['description'] : null;
+        $questionInfo['status'] = $postData['status'];
+        $questionInfo['type'] = $postData['type'];
+        $questionInfo['classification'] = $postData['classification'];
+        $questionInfo['detail'] = $postData['detail'];
+        $questionInfo['option'] = $postData['option'];
+        $questionInfo['answer'] = $postData['answer'];
+        isset($postData['description']) ? $questionInfo['description'] = $postData['description'] : null;
         $validator = Validator::make($questionInfo, [
             'status' => ['required', Rule::in(['NORMAL', 'LOCK'])],
             'type' => ['required', Rule::in(['SINGLE', 'MULTI'])],

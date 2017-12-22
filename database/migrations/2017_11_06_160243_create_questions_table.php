@@ -20,8 +20,8 @@ class CreateQuestionsTable extends Migration
             $table->string('status');
             $table->string('classification')->comment('题目分类');
             $table->string('type')->comment('题型');
-            $table->json('option');
-            $table->json('answer');
+            $table->json('option')->comment("[\"选项一","选项二\"]");
+            $table->json('answer')->comment("[0]");
             $table->string('create_uid');
             $table->dateTime('create_time');
             $table->string('update_uid');

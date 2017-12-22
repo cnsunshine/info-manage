@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 
 use App\Exceptions\ApiException;
+use App\Models\Exam;
 use App\Models\Student;
 use App\Models\User;
 use App\Service\Helper;
@@ -31,11 +32,18 @@ class UserController extends Controller
             ->select(['u.username', 'u.real_name', 'si.student_id',
                 'si.college', 'si.specialty', 'u.create_time',
                 'u.tel', 'u.email'])
-            ->get();
-        //todo status,exam_*_time
+            ->first();
+        $totalTime = DB::table('user_exam_log')
+            ->where('create_uid', $uid)
+            ->count();
+        $passTime = DB::table('exams as e')
+            ->join('user_exam_log as uel', 'e.eid', '=', 'uel.eid')
+            ->where('uel.create_uid', $uid)
+            ->where('uel.score', '>', 'e.pass_score')
+            ->count();
         $info['status'] = '正常';
-        $info['exam_total_time'] = 1;
-        $info['exam_pass_time'] = 1;
+        $info['exam_total_time'] = $totalTime;
+        $info['exam_pass_time'] = $passTime;
         return Helper::responseSuccess($info);
 
     }
@@ -115,9 +123,9 @@ class UserController extends Controller
             'tel' => $postData['tel']
         ];
         $validator = Validator::make($user, [
-            'username' => 'required|string|min:5|max:10|unique:users,username',
+            'username' => 'required|alpha|min:5|max:10|unique:users,username',
             'password' => 'required|min:5|max:10',
-            'real_name' => 'required|max:20',
+            'real_name' => 'required|max:8',
             'email' => 'required|email',
             'tel' => 'required|regex:[[0-9]{11}]'
         ]);
@@ -156,7 +164,7 @@ class UserController extends Controller
             throw new ApiException(20002);
         }
         $validator = Validator::make(['password' => $postData['new_password']], [
-            'password' => 'required|min:6|max:12'
+            'password' => 'required|min:5|max:10'
         ]);
         if ($validator->fails()){
             throw new ApiException(20008);
@@ -180,6 +188,13 @@ class UserController extends Controller
             throw new ApiException(20007);
         }
         $info = '修改成功';
+        return Helper::responseSuccess($info);
+    }
+
+    public function ifHasUser($name)
+    {
+        $result = User::where('username', $name)->first();
+        $info = (boolean)$result;
         return Helper::responseSuccess($info);
     }
 }

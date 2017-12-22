@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateExamContainTable extends Migration
+class CreateUserExamLogTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,13 @@ class CreateExamContainTable extends Migration
      */
     public function up()
     {
-        Schema::create('exam_contain', function (Blueprint $table) {
+        Schema::create('user_exam_log', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('eid');
-            $table->integer('qid');
+            $table->json('answer')->comment('[{"tid":1,"user_answer":2}]');
             $table->integer('score');
+            $table->string('create_uid');
+            $table->dateTime('create_time');
         });
     }
 
@@ -28,6 +30,6 @@ class CreateExamContainTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('exam_contain');
+        Schema::dropIfExists('user_exam_log');
     }
 }
