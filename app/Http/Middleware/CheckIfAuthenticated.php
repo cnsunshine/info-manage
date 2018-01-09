@@ -18,13 +18,16 @@ class CheckIfAuthenticated
     {
         //检测用户token
         $token = $request->header('x-token');
-        if (!isset($token)) {
-            return response(
-                [
-                    'code' => '20001',
-                    'errmsg' => 'please refresh token'
-                ]
-            );
+        if (!isset($token)){
+            $token = cookie('x-token');
+            if (!isset($token)){
+                return response(
+                    [
+                        'code' => '20001',
+                        'errmsg' => 'please refresh token'
+                    ]
+                );
+            }
         }
         //token 换取uid
         $uid = Redis::get($token);
