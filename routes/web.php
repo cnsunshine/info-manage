@@ -142,6 +142,30 @@ Route::get('/auth/login', 'AuthController@login');
 //检查用户存在性
 Route::get('/user/if_has/{username}', [
     'uses' => 'UserController@ifHasUser'
-])->where('username', '[a-zA-Z]+');
+])->where('username', '[a-zA-Z0-9]+');
 //注册接口
 Route::post('/user', 'UserController@register');
+
+##################微信接口
+Route::any('/wechat', 'WechatController@serve');
+//增加模板
+Route::post('/wechat/template/{id}', 'WechatController@add_template');
+Route::post('/wechat/template/message', 'WechatController@template_message');
+Route::get('/wechat/oauth', 'WechatController@oauth');
+Route::get('/wechat/oauth/callback', 'WechatController@oauth_callback');
+Route::get('/wechat/rabbitmq', 'WechatController@rabbitmq');
+Route::get('/wechat/rabbitmq/consumer', 'WechatController@consumer_rabbitmq');
+Route::get('/wechat/rabbitmq/get', 'WechatController@get_rabbitmq');
+Route::get('/wechat/menu/list', 'WechatController@get_menu_list');
+Route::get('/wechat/menu/current', 'WechatController@get_menu_current');
+Route::get('/wechat/menu/create', 'WechatController@create_menu');
+Route::delete('/wechat/menu', 'WechatController@delete_menu');
+Route::get('/wechat/template_message/private_template', 'WechatController@private_template');
+Route::post('/wechat/user/bind', 'WechatController@bind_user');
+//发送客服消息
+Route::post('/wechat/customer/service', 'WechatController@customer_service');
+
+//测试接口
+Route::get('/test', 'WechatController@test');
+
+Route::get('/route/info/{id}', 'OpenController@get_access_token');

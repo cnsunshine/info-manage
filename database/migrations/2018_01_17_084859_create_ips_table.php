@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAuthUserTable extends Migration
+class CreateIpsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,10 @@ class CreateAuthUserTable extends Migration
      */
     public function up()
     {
-        Schema::create('auth_user', function (Blueprint $table) {
+        Schema::create('ips', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('from');
-            $table->string('to')->nullable();
-            $table->string('aid')->nullable();
-            $table->string('role')->nullable();
-            $table->string('uri')->nullable();
             $table->string('ip_type')->nullable();
+            $table->string('ip');
         });
     }
 
@@ -31,6 +27,6 @@ class CreateAuthUserTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('auth_user');
+        Schema::dropIfExists('ips');
     }
 }

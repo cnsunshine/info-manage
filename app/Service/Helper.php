@@ -19,6 +19,13 @@ class Helper
     public static function getUid(Request $request)
     {
         $token = $request->header('x-token');
+        if (!isset($token)){
+            $token = cookie('x-token');
+            //如无检测cookie中token
+            if (!isset($token)){
+                throw new ApiException(20001);
+            }
+        }
         $uid = Redis::get($token);
         if (!$uid){
             throw new ApiException(20001);

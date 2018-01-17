@@ -123,8 +123,8 @@ class UserController extends Controller
             'tel' => $postData['tel']
         ];
         $validator = Validator::make($user, [
-            'username' => 'required|alpha|min:5|max:10|unique:users,username',
-            'password' => 'required|min:5|max:10',
+            'username' => 'required|alpha_num|min:5|max:20|unique:users,username',
+            'password' => 'required|min:5|max:20',
             'real_name' => 'required|max:8',
             'email' => 'required|email',
             'tel' => 'required|regex:[[0-9]{11}]'
