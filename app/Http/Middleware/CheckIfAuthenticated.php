@@ -19,18 +19,8 @@ class CheckIfAuthenticated
      */
     public function handle($request, Closure $next)
     {
-        //检测用户token
-        $token = $request->header('x-token');
-        if (!isset($token)){
-            $token = cookie('x-token');
-            //如无检测cookie中token
-            if (!isset($token)){
-                throw new ApiException(20001);
-            }
-        }
-        //token 换取uid
-        $uid = Redis::get($token);
-        if (!isset($uid)){
+        $uid = Helper::getUid($request);
+        if (!$uid){
             throw new ApiException(20001);
         }
         $request->attributes->add(['uid' => $uid]);
