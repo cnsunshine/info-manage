@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\CheckActionIfHasAuth;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -58,6 +59,10 @@ class Kernel extends HttpKernel
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         //登录验证中间件
-        'check.auth' => \App\Http\Middleware\CheckIfAuthenticated::class
+        'check.auth' => \App\Http\Middleware\CheckIfAuthenticated::class,
+        //url校验
+        'check.uri' => \App\Http\Middleware\CheckActionIfHasAuth::class,
+        //访问记录
+        'log.visit' => \App\Http\Middleware\RecordVisitLog::class
     ];
 }
