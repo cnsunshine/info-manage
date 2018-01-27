@@ -11,19 +11,29 @@ namespace App\Service;
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use PhpAmqpLib\Wire\AMQPTable;
 
 class RabbitMQ
 {
-    public static function push($queue = 'test',$exchange = 'test', $messageBody = 'ok')
+    /**
+     * @param string $queue
+     * @param string $exchange
+     * @param string $messageBody
+     * @param array $arguments 附加参数['x-max-priority'=>{int}]
+     * @param int $priority
+     */
+    public static function push($queue = 'test',$exchange = 'test', $messageBody = 'ok',$arguments = [], $priority = 1)
     {
         $connection = new AMQPStreamConnection(env('RABBITMQ_HOST'), env('RABBITMQ_PORT'), env('RABBITMQ_USER'), env('RABBITMQ_PASSWORD'));
         $chanel = $connection->channel();
-        $chanel->queue_declare($queue, false, true, false, false);
+        $args = new AMQPTable($arguments);
+        $chanel->queue_declare($queue, false, true, false, false, false, $args);
         $chanel->exchange_declare($exchange, 'fanout', false, true, false);
         $chanel->queue_bind($queue, $exchange);
         $message = new AMQPMessage($messageBody, [
             'content_type' => 'text/plain',
-            'delivery_mode' => AMQPMessage::DELIVERY_MODE_NON_PERSISTENT
+            'delivery_mode' => AMQPMessage::DELIVERY_MODE_NON_PERSISTENT,
+            'priority' => $priority
         ]);
         $chanel->basic_publish($message, $exchange);
         $chanel->close();
@@ -31,16 +41,22 @@ class RabbitMQ
     }
 
 
-    public static function read($queue = 'test')
+    /**
+     * @param string $queue
+     * @param array $arguments
+     * @return bool|mixed
+     */
+    public static function read($queue = 'test', $arguments = [])
     {
         $connection = new AMQPStreamConnection(env('RABBITMQ_HOST'), env('RABBITMQ_PORT'), env('RABBITMQ_USER'), env('RABBITMQ_PASSWORD'));
         $channel = $connection->channel();
-        $channel->queue_declare($queue, false, true, false, false);
+        $args = new AMQPTable($arguments);
+        $channel->queue_declare($queue, false, true, false, false, false, $args);
         $message = $channel->basic_get($queue);
         //$channel->basic_ack($message->delivery_info['delivery_tag']);
         $channel->close();
         $connection->close();
-        if ($message->body) {
+        if (isset($message->body)) {
             return $message;
         }else{
             return false;
@@ -49,11 +65,16 @@ class RabbitMQ
 
     }
 
-    public static function consumer($queue = 'test')
+    /**
+     * @param string $queue
+     * @param array $arguments
+     */
+    public static function consumer($queue = 'test', $arguments = [])
     {
         $connection = new AMQPStreamConnection(env('RABBITMQ_HOST'), env('RABBITMQ_PORT'), env('RABBITMQ_USER'), env('RABBITMQ_PASSWORD'));
         $channel = $connection->channel();
-        $channel->queue_declare($queue, false, true, false, false);
+        $args = new AMQPTable($arguments);
+        $channel->queue_declare($queue, false, true, false, false, false, $args);
         $message = $channel->basic_get($queue);
         $channel->basic_ack($message->delivery_info['delivery_tag']);
         $channel->close();
